@@ -1,6 +1,11 @@
 
 package Sad9;
 
+import java.awt.HeadlessException;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -10,16 +15,38 @@ import java.sql.Statement;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
+import static jdk.nashorn.internal.objects.NativeRegExp.source;
 import net.proteanit.sql.DbUtils;
+import org.apache.commons.io.FileUtils;
 
 public class form extends javax.swing.JFrame {
     PreparedStatement pst = null;
     ResultSet rs = null;
+    File theDirectory;
+    String theDirectoryPath="C:/SEHM/";
+    String imageFilePath = null;
     
     public form() {
         initComponents();
+        
+    theDirectory = new File(theDirectoryPath);
+        
+    if (!theDirectory.exists()) {
+  
+        try{
+            theDirectory.mkdir();
+        } 
+        catch(Exception e){
+            System.out.println(e);
+        }        
+    
+    }
         
         tableload();
     }
@@ -28,7 +55,7 @@ public class form extends javax.swing.JFrame {
     {
         try {
             Class.forName("com.mysql.jdbc.Driver");
-            Connection c = DriverManager.getConnection("jdbc:mysql://localhost:3306/semh", "root", "1234");
+            Connection c = DriverManager.getConnection("jdbc:mysql://localhost/semh", "root", "");
             String sql = "select * from customer";
             pst = c.prepareStatement(sql);
            rs =  pst.executeQuery();
@@ -120,6 +147,11 @@ public class form extends javax.swing.JFrame {
         jLabel6.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(255, 0, 102)));
 
         jButton5.setText("Attach Image");
+        jButton5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton5ActionPerformed(evt);
+            }
+        });
 
         jTextField1.setText("TextFieald Link");
         jTextField1.setEnabled(false);
@@ -397,6 +429,36 @@ public class form extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jTextField1ActionPerformed
 
+    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
+      
+    if(!cname.getText().isEmpty()){    
+        JFileChooser OpenFile = new JFileChooser();
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("Image Files", "jpg", "png", "gif", "jpeg");
+       try{
+             OpenFile.setFileFilter(filter);
+             OpenFile.showOpenDialog(null);
+             File x_file = OpenFile.getSelectedFile();
+             String Filepath = x_file.getAbsolutePath();
+             File newFilePath = new File(theDirectory+"\\"+cname.getText()+Filepath.substring(Filepath.lastIndexOf("."),Filepath.length()));
+             System.out.println(newFilePath.getAbsoluteFile());
+             FileUtils.copyFile(x_file,newFilePath);
+             imageFilePath = newFilePath.getAbsoluteFile().toString();
+             ImageIcon Ii = new ImageIcon(imageFilePath);
+             jLabel6.setIcon(Ii);
+       }
+       catch(HeadlessException | IOException e){ 
+           System.out.println("File not Selected!");
+           System.out.println(e);
+       }
+ 
+    }else{
+        JOptionPane.showMessageDialog(null,"Please enter the Customer name before selecting an image");
+    }
+       
+    
+    
+    }//GEN-LAST:event_jButton5ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -408,7 +470,7 @@ public class form extends javax.swing.JFrame {
          */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
+                if ("Windows".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
                     break;
                 }
